@@ -1,9 +1,10 @@
 import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { sendEmail } from "../services/mail.service.js";
 
 
-
+// register controller
 async function registerController(req, res) {
     try {
         const {username, email, password} = req.body;
@@ -24,11 +25,45 @@ async function registerController(req, res) {
         const user = await userModel.create({
         username, email, password: hashPassword
 
-    }).select("+password")
+    })
+
+    await sendEmail({
+        to: email,
+        subject: "welcome to Perplexcity!",
+        // html: <p>`Hi<b>${username}</b>,\n\nThank you for registering at Perplexcity. We're excited to have you on board!\n\n Best regards,\n The Perplexcity Team`</p>
+        html: ` <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      
+      <h2 style="color: #4CAF50;">Welcome to Perplexcity 🎉</h2>
+      
+      <p>
+        Hi <b>${username}</b>,
+      </p>
+      
+      <p>
+        Thank you for registering at <b>Perplexcity</b>. We're excited to have you on board!
+      </p>
+      
+      <p>
+        Get ready to explore amazing features and have a great experience 🚀
+      </p>
+      
+      <br/>
+      
+      <p>
+        Best regards,<br/>
+        <b>The Perplexcity Team</b>
+      </p>
+
+    </div>`
+    })
 
      res.status(201).json({
             message:"user registered Successfully",
-            user
+            user:{
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
             
         })
     } catch (error) {
@@ -41,3 +76,7 @@ async function registerController(req, res) {
 
 
 }
+
+
+
+export default registerController
