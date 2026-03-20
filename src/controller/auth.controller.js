@@ -5,7 +5,7 @@ import { sendEmail } from "../services/mail.service.js";
 
 
 // register controller
-async function registerController(req, res) {
+ export async function registerController(req, res) {
     try {
         const {username, email, password} = req.body;
 
@@ -83,8 +83,24 @@ async function registerController(req, res) {
 
 }
 
-// async function verifyEmailController(params) {
-//     const 
-// }
+ export async function verifyEmailController(req, res) {
+    const {token} = req.query;
 
-export default registerController
+    const decoded = jwt.verify(token, process.env.TOKEN);
+    const user = await userModel.findOne({email: decoded.email})
+    if(!user){
+        return res.status(400).json({
+            message: "Invalid token",
+            success: false,
+            err: "User not found"
+        })
+    }
+    user.verified = true;
+    await user.save();
+
+    const html =  `<h1>Email verified Successfully</h1>
+        <p>Your email has been verified. you can log in to account. </p>`
+
+    res.sendHtml(html);
+}
+
