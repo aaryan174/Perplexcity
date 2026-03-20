@@ -24,8 +24,12 @@ async function registerController(req, res) {
         const hashPassword = await bcrypt.hash(password, 10)
         const user = await userModel.create({
         username, email, password: hashPassword
-
     })
+
+    const emailverficationToken = jwt.sign({
+        email: user.email
+    }, process.env.TOKEN)
+    
 
     await sendEmail({
         to: email,
@@ -40,8 +44,10 @@ async function registerController(req, res) {
       </p>
       
       <p>
-        Thank you for registering at <b>Perplexcity</b>. We're excited to have you on board!
+        Thank you for registering at <b>Perplexcity</b>. We're excited to have you on board! Please verify your email address by clicking the link below:
       </p>
+
+      <a href="http://localhost:3000/api/auth/verify-email?token=${emailverficationToken}">Verify Email </a>
       
       <p>
         Get ready to explore amazing features and have a great experience 🚀
@@ -77,6 +83,8 @@ async function registerController(req, res) {
 
 }
 
-
+// async function verifyEmailController(params) {
+//     const 
+// }
 
 export default registerController
