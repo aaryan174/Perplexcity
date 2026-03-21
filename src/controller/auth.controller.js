@@ -2,6 +2,7 @@ import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { sendEmail } from "../services/mail.service.js";
+import messageModel from "../model/message.model.js";
 
 
 // register controller
@@ -168,3 +169,22 @@ export async function loginController(req, res) {
   }
 }
 
+// get-me
+export async function getMe(req, res) {
+    const userId = req.user.id;
+
+    const user = await userModel.findById(userId)
+
+    if(!user){
+        return res.status(400).json({
+            message:"User not found",
+            success: false,
+            err: "User not found"
+        })
+    }
+
+    res.status(200).json({
+        message: "user detail fetched Successfully",
+        user
+    })
+}
