@@ -82,7 +82,7 @@ import { sendEmail } from "../services/mail.service.js";
 
 
 }
-
+// verify controller 
  export async function verifyEmailController(req, res) {
     const {token} = req.query;
 
@@ -99,8 +99,72 @@ import { sendEmail } from "../services/mail.service.js";
     await user.save();
 
     const html =  `<h1>Email verified Successfully</h1>
-        <p>Your email has been verified. you can log in to account. </p>`
+        <p>Your email has been verified. you can log in to account. </p>
+        <a href="http://localhost:3000/api/auth/login"> Go to Login </a>`
+        
 
-    res.sendHtml(html);
+    res.send(html);
+}
+// login controller
+export async function loginController(req, res) {
+  try {
+    const {username, email, password} = req.body;
+    const user = await userModel.findOne({
+        $or:[
+            {username},
+            {email}
+        ]
+    }).select("+password")             
+    
+
+    if(!user){
+        return res.status(400).json({
+            message:"Invalid email or Password",
+            success: false,
+            err: "Invalid email or Password"
+        })
+    }
+    const isPasswordhashed = await bcrypt.compare(password, user.password)
+
+    if(!isPasswordhashed){
+        return res.status(400).json({
+            message:"Invalid email or Password",
+            success: false,
+            err:"Invalid email or Password"
+        })
+    }
+
+    if(!user.verified){
+        return res.status(400).json({
+            message:"please verify the email first",
+            success: false,
+            err:"email not verified"
+        }) 
+    }
+
+    const token = await jwt.sign({
+        id: user._id,
+        username: user.username,
+        email: user.email
+    }, process.env.TOKEN, { expiresIn: "2d" })
+
+    res.cookie("token", token)
+
+    res.status(200).json({
+        message:"user logged in Successfully",
+        success: true,
+        user: {
+            id: user.id,
+            username: user.username,
+            email: user.email
+        }
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    })
+  }
 }
 
