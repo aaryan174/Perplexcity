@@ -2,7 +2,6 @@ import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { sendEmail } from "../services/mail.service.js";
-import messageModel from "../model/message.model.js";
 
 
 // register controller
@@ -168,9 +167,8 @@ export async function loginController(req, res) {
     })
   }
 }
-
 // get-me
-export async function getMe(req, res) {
+export async function getMeController(req, res) {
     const userId = req.user.id;
 
     const user = await userModel.findById(userId)
