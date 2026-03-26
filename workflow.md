@@ -13,3 +13,5 @@ src/features/auth/
 │   └── Register.tsx               ← imports from ../components/
 └── hooks/
 
+
+using redux for better data centralization
