@@ -7,11 +7,11 @@ import { EyeBall, Pupil } from "./animated-eyes";
 // ─── Shared hook: mouse tracking ────────────────────────────
 
 export function useMousePosition() {
-  const [mouseX, setMouseX] = useState<number>(0);
-  const [mouseY, setMouseY] = useState<number>(0);
+  const [mouseX, setMouseX] = useState(0);
+  const [mouseY, setMouseY] = useState(0);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       setMouseX(e.clientX);
       setMouseY(e.clientY);
     };
@@ -50,11 +50,7 @@ export function useBlinking() {
 
 // ─── Shared: calculate character position from mouse ────────
 
-export function useCharacterPosition(
-  ref: React.RefObject<HTMLDivElement | null>,
-  mouseX: number,
-  mouseY: number
-) {
+export function useCharacterPosition(ref, mouseX, mouseY) {
   if (!ref.current) return { faceX: 0, faceY: 0, bodySkew: 0 };
 
   const rect = ref.current.getBoundingClientRect();
@@ -73,27 +69,21 @@ export function useCharacterPosition(
 
 // ─── Animated Characters Panel (Left Side) ──────────────────
 
-interface AnimatedCharactersPanelProps {
-  password: string;
-  showPassword: boolean;
-  isTyping: boolean;
-}
-
 export function AnimatedCharactersPanel({
   password,
   showPassword,
   isTyping,
-}: AnimatedCharactersPanelProps) {
+}) {
   const { mouseX, mouseY } = useMousePosition();
   const isPurpleBlinking = useBlinking();
   const isBlackBlinking = useBlinking();
   const [isLookingAtEachOther, setIsLookingAtEachOther] = useState(false);
   const [isPurplePeeking, setIsPurplePeeking] = useState(false);
 
-  const purpleRef = useRef<HTMLDivElement>(null);
-  const blackRef = useRef<HTMLDivElement>(null);
-  const yellowRef = useRef<HTMLDivElement>(null);
-  const orangeRef = useRef<HTMLDivElement>(null);
+  const purpleRef = useRef(null);
+  const blackRef = useRef(null);
+  const yellowRef = useRef(null);
+  const orangeRef = useRef(null);
 
   // Looking at each other when typing
   useEffect(() => {
@@ -308,19 +298,12 @@ export function AnimatedCharactersPanel({
 
 // ─── Auth Page Layout ───────────────────────────────────────
 
-interface AuthPageLayoutProps {
-  password: string;
-  showPassword: boolean;
-  isTyping: boolean;
-  children: React.ReactNode;
-}
-
 export function AuthPageLayout({
   password,
   showPassword,
   isTyping,
   children,
-}: AuthPageLayoutProps) {
+}) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <AnimatedCharactersPanel

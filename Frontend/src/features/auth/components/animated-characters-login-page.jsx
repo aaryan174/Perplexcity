@@ -10,28 +10,27 @@ import { Link } from "react-router-dom";
 import { AuthPageLayout } from "./auth-layout";
 
 
-function RegisterPage() {
+function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    if (username && email && password) {
-      console.log("✅ Registration successful!");
-      alert(`Registration successful! Welcome, ${username}!`);
+    if (email === "erik@gmail.com" && password === "1234") {
+      console.log("✅ Login successful!");
+      alert("Login successful! Welcome, Erik!");
     } else {
-      setError("Please fill in all fields.");
-      console.log("❌ Registration failed");
+      setError("Invalid email or password. Please try again.");
+      console.log("❌ Login failed");
     }
 
     setIsLoading(false);
@@ -49,28 +48,12 @@ function RegisterPage() {
 
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Create an account</h1>
-        <p className="text-muted-foreground text-sm">Please enter your details to sign up</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back!</h1>
+        <p className="text-muted-foreground text-sm">Please enter your details</p>
       </div>
 
-      {/* Register Form */}
+      {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="username" className="text-sm font-medium">Username</Label>
-          <Input
-            id="username"
-            type="text"
-            placeholder="johndoe"
-            value={username}
-            autoComplete="off"
-            onChange={(e) => setUsername(e.target.value)}
-            onFocus={() => setIsTyping(true)}
-            onBlur={() => setIsTyping(false)}
-            required
-            className="h-12 bg-background border-border/60 focus:border-primary"
-          />
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">Email</Label>
           <Input
@@ -109,11 +92,16 @@ function RegisterPage() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Checkbox id="terms" />
-          <Label htmlFor="terms" className="text-sm font-normal cursor-pointer">
-            I agree to the Terms of Service
-          </Label>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Checkbox id="remember" />
+            <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
+              Remember for 30 days
+            </Label>
+          </div>
+          <a href="#" className="text-sm text-primary hover:underline font-medium">
+            Forgot password?
+          </a>
         </div>
 
         {error && (
@@ -123,7 +111,7 @@ function RegisterPage() {
         )}
 
         <Button type="submit" className="w-full h-12 text-base font-medium" size="lg" disabled={isLoading}>
-          {isLoading ? "Creating account..." : "Sign Up"}
+          {isLoading ? "Signing in..." : "Log in"}
         </Button>
       </form>
 
@@ -131,19 +119,19 @@ function RegisterPage() {
       <div className="mt-6">
         <Button variant="outline" className="w-full h-12 bg-background border-border/60 hover:bg-accent" type="button">
           <Mail className="mr-2 size-5" />
-          Sign up with Google
+          Log in with Google
         </Button>
       </div>
 
-      {/* Login Link */}
+      {/* Sign Up Link */}
       <div className="text-center text-sm text-muted-foreground mt-8">
-        Already have an account?{" "}
-        <Link to="/login" className="text-foreground font-medium hover:underline">
-          Log in
+        Don't have an account?{" "}
+        <Link to="/register" className="text-foreground font-medium hover:underline">
+          Sign Up
         </Link>
       </div>
     </AuthPageLayout>
   );
 }
 
-export const AnimatedRegisterPage = RegisterPage;
+export const AnimatedLoginPage = LoginPage;

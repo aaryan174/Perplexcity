@@ -4,27 +4,19 @@ import { useState, useEffect, useRef } from "react";
 
 // ─── Pupil ──────────────────────────────────────────────────
 
-interface PupilProps {
-  size?: number;
-  maxDistance?: number;
-  pupilColor?: string;
-  forceLookX?: number;
-  forceLookY?: number;
-}
-
 export const Pupil = ({
   size = 12,
   maxDistance = 5,
   pupilColor = "black",
   forceLookX,
   forceLookY,
-}: PupilProps) => {
-  const [mouseX, setMouseX] = useState<number>(0);
-  const [mouseY, setMouseY] = useState<number>(0);
-  const pupilRef = useRef<HTMLDivElement>(null);
+}) => {
+  const [mouseX, setMouseX] = useState(0);
+  const [mouseY, setMouseY] = useState(0);
+  const pupilRef = useRef(null);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       setMouseX(e.clientX);
       setMouseY(e.clientY);
     };
@@ -66,17 +58,6 @@ export const Pupil = ({
 
 // ─── EyeBall ────────────────────────────────────────────────
 
-interface EyeBallProps {
-  size?: number;
-  pupilSize?: number;
-  maxDistance?: number;
-  eyeColor?: string;
-  pupilColor?: string;
-  isBlinking?: boolean;
-  forceLookX?: number;
-  forceLookY?: number;
-}
-
 export const EyeBall = ({
   size = 48,
   pupilSize = 16,
@@ -86,13 +67,13 @@ export const EyeBall = ({
   isBlinking = false,
   forceLookX,
   forceLookY,
-}: EyeBallProps) => {
-  const [mouseX, setMouseX] = useState<number>(0);
-  const [mouseY, setMouseY] = useState<number>(0);
-  const eyeRef = useRef<HTMLDivElement>(null);
+}) => {
+  const [mouseX, setMouseX] = useState(0);
+  const [mouseY, setMouseY] = useState(0);
+  const eyeRef = useRef(null);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       setMouseX(e.clientX);
       setMouseY(e.clientY);
     };
