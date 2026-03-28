@@ -108,11 +108,11 @@ import { sendEmail } from "../services/mail.service.js";
 // login controller
 export async function loginController(req, res) {
   try {
-    const {username, email, password} = req.body;
+    const {identifier, password} = req.body;
     const user = await userModel.findOne({
         $or:[
-            {username},
-            {email}
+            {username: identifier},
+            {email: identifier}
         ]
     }).select("+password")             
     

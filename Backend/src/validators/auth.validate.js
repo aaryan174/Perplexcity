@@ -21,16 +21,9 @@ export const  registerUserValidator = [
 ]
 
 export const loginUserValidator =[
-    body("username")
-     .optional()
+    body("identifier")
      .trim()
-     .matches(/^[a-zA-Z0-9_]+$/)
-    .isLength({ min: 5 }).withMessage("Username must be at least 5 characters"),
-
-    body("email")
-     .optional()
-     .trim()
-    .isEmail().withMessage("Enter a valid email"),
+     .notEmpty().withMessage("Username or email is required"),
 
   body("password")
     .trim()

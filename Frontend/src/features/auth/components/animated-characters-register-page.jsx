@@ -1,6 +1,5 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthPageLayout } from "./auth-layout";
+import { useAuth } from "../hooks/useAuth";
 
 
 function RegisterPage() {
@@ -15,26 +15,18 @@ function RegisterPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  const { handleRegister, handleClearError } = useAuth();
+  const { loading: isLoading, error } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    handleClearError();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    if (username && email && password) {
-      console.log("✅ Registration successful!");
-      alert(`Registration successful! Welcome, ${username}!`);
-    } else {
-      setError("Please fill in all fields.");
-      console.log("❌ Registration failed");
-    }
-
-    setIsLoading(false);
+    await handleRegister({ username, email, password });
   };
 
   return (

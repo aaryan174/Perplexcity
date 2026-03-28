@@ -1,6 +1,5 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,32 +7,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthPageLayout } from "./auth-layout";
+import { useAuth } from "../hooks/useAuth";
 
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  const { handleLogin, handleClearError } = useAuth();
+  const { loading: isLoading, error } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    handleClearError();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    if (email === "erik@gmail.com" && password === "1234") {
-      console.log("✅ Login successful!");
-      alert("Login successful! Welcome, Erik!");
-    } else {
-      setError("Invalid email or password. Please try again.");
-      console.log("❌ Login failed");
-    }
-
-    setIsLoading(false);
+    await handleLogin({ identifier, password });
   };
 
   return (
@@ -55,14 +47,14 @@ function LoginPage() {
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+          <Label htmlFor="identifier" className="text-sm font-medium">Email or Username</Label>
           <Input
-            id="email"
-            type="email"
-            placeholder="anna@gmail.com"
-            value={email}
+            id="identifier"
+            type="text"
+            placeholder="email or username"
+            value={identifier}
             autoComplete="off"
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setIdentifier(e.target.value)}
             onFocus={() => setIsTyping(true)}
             onBlur={() => setIsTyping(false)}
             required
