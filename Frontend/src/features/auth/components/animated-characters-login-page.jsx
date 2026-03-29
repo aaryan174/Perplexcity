@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { AuthPageLayout } from "./auth-layout";
 import { useAuth } from "../hooks/useAuth";
+
 
 
 function LoginPage() {
@@ -19,9 +20,19 @@ function LoginPage() {
   const { handleLogin, handleClearError } = useAuth();
   const { loading: isLoading, error } = useSelector((state) => state.auth);
 
+  
+  const user = useSelector(state => state.auth.user)
+  const loading = useSelector(state => state.auth.loading)
+
+  
+
   useEffect(() => {
     handleClearError();
   }, []);
+
+  if(!loading &&  user) {
+    return <Navigate to="/" replace />
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -8,6 +8,7 @@ import { Eye, EyeOff, Mail, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthPageLayout } from "./auth-layout";
 import { useAuth } from "../hooks/useAuth";
+import { Navigate } from "react-router-dom";
 
 
 function RegisterPage() {
@@ -20,9 +21,18 @@ function RegisterPage() {
   const { handleRegister, handleClearError } = useAuth();
   const { loading: isLoading, error } = useSelector((state) => state.auth);
 
+   const user = useSelector(state => state.auth.user)
+  const loading = useSelector(state => state.auth.loading)
+
+  
+
   useEffect(() => {
     handleClearError();
   }, []);
+
+  if(!loading &&  user) {
+    return <Navigate to="/" replace />
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
