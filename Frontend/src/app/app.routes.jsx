@@ -3,6 +3,7 @@ import Login from "../features/auth/pages/Login"
 import Register from "../features/auth/pages/Register"
 import AppLayout from "./AppLayout"
 import Protected from "../features/auth/components/Protected"
+import Dashboard from "../features/chat/pages/Dashboard"
 
 export const router = createBrowserRouter([
   {
@@ -18,7 +19,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/",
-        element: <Protected> <h1>home</h1></Protected>,
+        element: <Protected><Dashboard /></Protected>,
       },
     ],
   },
