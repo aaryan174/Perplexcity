@@ -124,6 +124,7 @@ export async function loginController(req, res) {
             err: "Invalid email or Password"
         })
     }
+
     const isPasswordhashed = await bcrypt.compare(password, user.password)
 
     if(!isPasswordhashed){
