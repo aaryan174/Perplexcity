@@ -1,19 +1,28 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { useChat } from '../hooks/useChat'
+import { DashboardUI } from '../components/DashboardUI'
 
 const Dashboard = () => {
+  const chat = useChat()
+  const user = useSelector((state) => state.auth.user)
 
-const chat = useChat()
-
-
-useEffect(()=>{
+  useEffect(() => {
     chat.initializeSocketConnection()
-},[])
+  }, [])
 
   return (
-    <div>
-      Dashboard
-    </div>
+    <DashboardUI
+      chatHistory={[]}
+      activeChatId={null}
+      user={user}
+      onSendMessage={(message) => console.log("Send:", message)}
+      onNewChat={() => console.log("New chat")}
+      onSelectChat={(id) => console.log("Select chat:", id)}
+      onDeleteChat={(id) => console.log("Delete chat:", id)}
+      onSettingsClick={() => console.log("Settings")}
+      onProfileClick={() => console.log("Profile")}
+    />
   )
 }
 
