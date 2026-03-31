@@ -15,6 +15,7 @@
     "@langchain/core": "^1.1.36",
     "@langchain/google-genai": "^2.1.26",
     "@langchain/mistralai": "^1.0.7",
+    "@langchain/tavily": "^1.2.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -25,6 +26,7 @@
     "langchain": "^1.2.37",
     "mongoose": "^9.3.1",
     "nodemailer": "^8.0.3",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "zod": "^4.3.6"
   }
 }

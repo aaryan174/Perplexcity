@@ -38,7 +38,7 @@ export async function sendMessage(req, res) {
 
         const messages = await messageModel.find({chat: finalChatId})
 
-        const result = await generateResponse(message)
+        const result = await generateResponse(messages)
 
         const aiMessage = await messageModel.create({
             chat: finalChatId,

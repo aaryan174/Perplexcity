@@ -81,9 +81,14 @@ function StreamingText({ content, isUser, onComplete }) {
       onComplete?.();
       return;
     }
-    const speed = 20 + Math.random() * 20; // 20-40ms per word
+    // Base speed 5-15ms for much faster streaming
+    const speed = 5 + Math.random() * 10;
+    
+    // For long texts, step by more than 1 word at a time for perceived smoothness and speed
+    const step = totalWords > 400 ? 5 : (totalWords > 150 ? 3 : 1);
+
     const timer = setTimeout(() => {
-      setDisplayedWordCount((prev) => Math.min(prev + 1, totalWords));
+      setDisplayedWordCount((prev) => Math.min(prev + step, totalWords));
     }, speed);
     return () => clearTimeout(timer);
   }, [displayedWordCount, totalWords, isComplete, onComplete]);
