@@ -4,22 +4,50 @@ import { useChat } from '../hooks/useChat'
 import { DashboardUI } from '../components/DashboardUI'
 
 const Dashboard = () => {
-  const chat = useChat()
   const user = useSelector((state) => state.auth.user)
 
+  const {
+    chats,
+    currentChatId,
+    messages,
+    isLoading,
+    isTyping,
+    streamedMsgId,
+
+    initializeSocketConnection,
+    handleSendMessage,
+    handleGetChats,
+    handleSelectChat,
+    handleDeleteChat,
+    handleNewChat,
+  } = useChat()
+
+  // Initialize socket + fetch chats on mount
   useEffect(() => {
-    chat.initializeSocketConnection()
+    initializeSocketConnection()
+    handleGetChats()
   }, [])
+
+  // Convert chats map to sorted array for sidebar
+  const chatHistory = Object.values(chats).sort(
+    (a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
+  )
 
   return (
     <DashboardUI
-      chatHistory={[]}
-      activeChatId={null}
+      chatHistory={chatHistory}
+      activeChatId={currentChatId}
+      messages={messages}
+      isTyping={isTyping}
+      isLoading={isLoading}
+      streamedMsgId={streamedMsgId}
       user={user}
-      onSendMessage={(message) => console.log("Send:", message)}
-      onNewChat={() => console.log("New chat")}
-      onSelectChat={(id) => console.log("Select chat:", id)}
-      onDeleteChat={(id) => console.log("Delete chat:", id)}
+      onSendMessage={(message) =>
+        handleSendMessage({ message, chatId: currentChatId })
+      }
+      onNewChat={handleNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
       onSettingsClick={() => console.log("Settings")}
       onProfileClick={() => console.log("Profile")}
     />

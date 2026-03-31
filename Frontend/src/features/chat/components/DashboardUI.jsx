@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
@@ -22,6 +22,7 @@ import {
   User,
   Copy,
   Check,
+  AlertTriangle,
 } from "lucide-react";
 
 // ─── Auto-resize textarea hook ────────────────────────────────────────────────
@@ -35,22 +36,28 @@ function useAutoResizeTextarea({ minHeight, maxHeight }) {
 
       if (reset) {
         textarea.style.height = `${minHeight}px`;
+        textarea.style.overflowY = "hidden";
         return;
       }
 
       textarea.style.height = `${minHeight}px`;
-      const newHeight = Math.max(
-        minHeight,
-        Math.min(textarea.scrollHeight, maxHeight ?? Infinity)
-      );
+      const scrollH = textarea.scrollHeight;
+      const cappedMax = maxHeight ?? Infinity;
+      const newHeight = Math.max(minHeight, Math.min(scrollH, cappedMax));
       textarea.style.height = `${newHeight}px`;
+
+      // Enable scroll when content exceeds max height
+      textarea.style.overflowY = scrollH > cappedMax ? "auto" : "hidden";
     },
     [minHeight, maxHeight]
   );
 
   useEffect(() => {
     const textarea = textareaRef.current;
-    if (textarea) textarea.style.height = `${minHeight}px`;
+    if (textarea) {
+      textarea.style.height = `${minHeight}px`;
+      textarea.style.overflowY = "hidden";
+    }
   }, [minHeight]);
 
   useEffect(() => {
@@ -62,19 +69,112 @@ function useAutoResizeTextarea({ minHeight, maxHeight }) {
   return { textareaRef, adjustHeight };
 }
 
-// ─── Dummy AI responses for demo ──────────────────────────────────────────────
-const DUMMY_AI_RESPONSES = [
-  "Great question! Here's what I think about that:\n\nThe key concept here is understanding how **React components** communicate through props and state. When you pass data down from a parent to a child component, you're creating a one-way data flow that makes your application predictable and easy to debug.\n\nHere's a quick example:\n```js\nfunction Parent() {\n  const [count, setCount] = useState(0);\n  return <Child count={count} onIncrement={() => setCount(c => c + 1)} />;\n}\n```\n\nLet me know if you'd like me to elaborate on any part of this!",
+// ─── Streaming text (word-by-word reveal) ─────────────────────────────────────
+function StreamingText({ content, isUser, onComplete }) {
+  const [displayedWordCount, setDisplayedWordCount] = useState(0);
+  const words = useMemo(() => content.split(/( +)/), [content]);
+  const totalWords = words.length;
+  const isComplete = displayedWordCount >= totalWords;
 
-  "I'd be happy to help with that! Let me break it down step by step:\n\n1. **First**, set up your project structure with separate layers for UI, state, API, and hooks\n2. **Second**, create your API service that handles HTTP requests\n3. **Third**, build your Redux slice for state management\n4. **Finally**, connect everything with a custom hook\n\nThis architecture keeps your code modular and easy to maintain. Each layer has a single responsibility, making testing and debugging much simpler.",
+  useEffect(() => {
+    if (isComplete) {
+      onComplete?.();
+      return;
+    }
+    const speed = 20 + Math.random() * 20; // 20-40ms per word
+    const timer = setTimeout(() => {
+      setDisplayedWordCount((prev) => Math.min(prev + 1, totalWords));
+    }, speed);
+    return () => clearTimeout(timer);
+  }, [displayedWordCount, totalWords, isComplete, onComplete]);
 
-  "That's an interesting approach! Here are my thoughts:\n\nUsing a **four-layer architecture** is excellent for scalability. The separation of concerns means you can swap out any layer without affecting the others. For example, if you switch from Redux to Zustand, only your state layer changes.\n\n> Pro tip: Keep your UI components \"dumb\" — they should only receive props and render UI. All business logic belongs in hooks or services.\n\nWould you like me to help implement this pattern for a specific feature?",
-];
+  const partialContent = words.slice(0, displayedWordCount).join("");
+
+  return (
+    <>
+      <MessageContent content={partialContent} isUser={isUser} />
+      {!isComplete && (
+        <span className="inline-block w-[6px] h-[14px] bg-violet-400 animate-pulse ml-0.5 align-text-bottom rounded-sm" />
+      )}
+    </>
+  );
+}
+
+// ─── Delete confirmation modal ────────────────────────────────────────────────
+function DeleteConfirmModal({ chatTitle, onConfirm, onCancel }) {
+  // Close on Escape
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onCancel]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      onClick={onCancel}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+
+      {/* Modal */}
+      <div
+        className="relative bg-[#141414] border border-neutral-700/60 rounded-2xl p-6 w-[90%] max-w-[400px] shadow-2xl shadow-black/50 animate-message-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Warning icon */}
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-red-400" />
+          </div>
+        </div>
+
+        <h3 className="text-white text-lg font-semibold text-center mb-2">
+          Delete Chat?
+        </h3>
+        <p className="text-neutral-400 text-sm text-center mb-6 leading-relaxed">
+          Are you sure you want to delete
+          <span className="text-white font-medium"> "{chatTitle || "this chat"}"</span>?
+          This action cannot be undone.
+        </p>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-all duration-200 border border-neutral-700 hover:border-neutral-600"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-all duration-200 border border-red-500 hover:border-red-400 active:scale-[0.97]"
+          >
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 // ─── Single chat message bubble ───────────────────────────────────────────────
-function ChatBubble({ message }) {
+function ChatBubble({ message, shouldStream = false }) {
   const [copied, setCopied] = useState(false);
+  const [streamDone, setStreamDone] = useState(!shouldStream);
   const isUser = message.role === "user";
+
+  // Reset streaming state when shouldStream flips to true
+  useEffect(() => {
+    if (shouldStream) {
+      setStreamDone(false);
+    }
+  }, [shouldStream]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -105,11 +205,19 @@ function ChatBubble({ message }) {
             : "bg-neutral-800/80 text-neutral-200 rounded-bl-md border border-neutral-700/50"
         )}
       >
-        {/* Render message content with basic markdown support */}
-        <MessageContent content={message.content} isUser={isUser} />
+        {/* Streaming word-by-word for latest AI, or static render */}
+        {shouldStream && !isUser && !streamDone ? (
+          <StreamingText
+            content={message.content}
+            isUser={isUser}
+            onComplete={() => setStreamDone(true)}
+          />
+        ) : (
+          <MessageContent content={message.content} isUser={isUser} />
+        )}
 
         {/* Copy button for AI messages */}
-        {!isUser && (
+        {!isUser && streamDone && (
           <button
             type="button"
             onClick={handleCopy}
@@ -444,7 +552,6 @@ function ChatInputBar({ value, setValue, textareaRef, adjustHeight, onKeyDown, o
             "placeholder:text-neutral-500 placeholder:text-sm",
             compact ? "px-3 py-2 min-h-[36px]" : "px-4 py-3 min-h-[60px]"
           )}
-          style={{ overflow: "hidden" }}
         />
       </div>
 
@@ -499,7 +606,10 @@ export function DashboardUI({
   chatHistory = [],
   activeChatId = null,
   user = null,
-  messages: externalMessages = null,
+  messages = [],
+  isTyping = false,
+  isLoading = false,
+  streamedMsgId = null,
 
   onSendMessage,
   onNewChat,
@@ -510,18 +620,15 @@ export function DashboardUI({
 }) {
   const [value, setValue] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [localMessages, setLocalMessages] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, title } for delete modal
   const messagesEndRef = useRef(null);
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 36,
-    maxHeight: 200,
+    maxHeight: 150,
   });
 
-  // Use external messages if provided, otherwise local
-  const messages = externalMessages ?? localMessages;
-  const isChatView = messages.length > 0;
+  const isChatView = messages.length > 0 || activeChatId;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -547,31 +654,11 @@ export function DashboardUI({
     const msg = text || value.trim();
     if (!msg) return;
 
-    // Add user message
-    const userMsg = { _id: Date.now().toString(), role: "user", content: msg };
-    setLocalMessages((prev) => [...prev, userMsg]);
     setValue("");
     adjustHeight(true);
 
-    // Call external handler if exists
+    // Delegate to parent handler (Dashboard -> useChat -> API)
     onSendMessage?.(msg);
-
-    // Simulate AI typing + response (dummy for now)
-    if (!externalMessages) {
-      setIsTyping(true);
-      const delay = 1000 + Math.random() * 1500;
-      setTimeout(() => {
-        const aiResponse =
-          DUMMY_AI_RESPONSES[Math.floor(Math.random() * DUMMY_AI_RESPONSES.length)];
-        const aiMsg = {
-          _id: (Date.now() + 1).toString(),
-          role: "ai",
-          content: aiResponse,
-        };
-        setLocalMessages((prev) => [...prev, aiMsg]);
-        setIsTyping(false);
-      }, delay);
-    }
   };
 
   const handleKeyDown = (e) => {
@@ -582,17 +669,36 @@ export function DashboardUI({
   };
 
   const handleNewChat = () => {
-    setLocalMessages([]);
-    setIsTyping(false);
     setValue("");
     adjustHeight(true);
     onNewChat?.();
+  };
+
+  // Wrap onDeleteChat to show confirmation modal
+  const handleDeleteRequest = (chatId) => {
+    const chat = chatHistory.find((c) => c._id === chatId);
+    setDeleteTarget({ id: chatId, title: chat?.title || "Untitled Chat" });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTarget) {
+      onDeleteChat?.(deleteTarget.id);
+      setDeleteTarget(null);
+    }
   };
 
   const groupedChats = groupChatsByDate(chatHistory);
 
   return (
     <div className="flex h-[100dvh] w-full bg-[#0a0a0a] overflow-hidden">
+      {/* ═══ DELETE CONFIRMATION MODAL ═══ */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          chatTitle={deleteTarget.title}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
       {/* ═══ MOBILE SIDEBAR OVERLAY ═══ */}
       {mobileMenuOpen && (
         <div
@@ -611,7 +717,7 @@ export function DashboardUI({
               user={user}
               onNewChat={handleNewChat}
               onSelectChat={onSelectChat}
-              onDeleteChat={onDeleteChat}
+              onDeleteChat={handleDeleteRequest}
               onSettingsClick={onSettingsClick}
               onProfileClick={onProfileClick}
               onCloseMobile={() => setMobileMenuOpen(false)}
@@ -629,7 +735,7 @@ export function DashboardUI({
           user={user}
           onNewChat={handleNewChat}
           onSelectChat={onSelectChat}
-          onDeleteChat={onDeleteChat}
+          onDeleteChat={handleDeleteRequest}
           onSettingsClick={onSettingsClick}
           onProfileClick={onProfileClick}
         />
@@ -703,10 +809,14 @@ export function DashboardUI({
         {isChatView && (
           <div className="flex-1 flex flex-col relative z-10 min-h-0">
             {/* Messages area */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-              <div className="max-w-[800px] mx-auto space-y-6">
+            <div className="flex-1 overflow-y-auto px-3 py-4 chat-scrollbar">
+              <div className="space-y-6">
                 {messages.map((msg) => (
-                  <ChatBubble key={msg._id} message={msg} />
+                  <ChatBubble
+                    key={msg._id}
+                    message={msg}
+                    shouldStream={msg._id === streamedMsgId}
+                  />
                 ))}
 
                 {isTyping && <TypingIndicator />}
@@ -716,8 +826,8 @@ export function DashboardUI({
             </div>
 
             {/* Bottom input bar (sticky) */}
-            <div className="border-t border-neutral-800/60 px-4 sm:px-6 py-3 bg-[#0a0a0a]/90 backdrop-blur-xl">
-              <div className="max-w-[800px] mx-auto">
+            <div className="border-t border-neutral-800/60 px-3 py-3 bg-[#0a0a0a]/90 backdrop-blur-xl">
+              <div>
                 <ChatInputBar
                   value={value}
                   setValue={setValue}
