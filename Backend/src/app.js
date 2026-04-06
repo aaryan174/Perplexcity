@@ -2,7 +2,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.routes.js";
 import chatRouter from "./routes/chat.routes.js";
-import cors from "cors"
+import cors from "cors";
+import path from "path";
 
 
 // middleware
@@ -18,6 +19,11 @@ app.use(cors({
 
 app.use("/api/auth", authRouter);
 app.use("/api/chats", chatRouter );
+
+app.use(express.static(path.join(__dirname, "public")));
+app.get(/.*/,(req, res)=>{
+    res.sendFile(path.join(__dirname, "public", "index.html"))
+});
 
 
 export default  app;
