@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useChat } from '../hooks/useChat'
+import { useAuth } from '../../auth/hooks/useAuth'
 import { DashboardUI } from '../components/DashboardUI'
 
 const Dashboard = () => {
   const user = useSelector((state) => state.auth.user)
+  const { handleLogout } = useAuth()
 
   const {
     chats,
@@ -50,6 +52,7 @@ const Dashboard = () => {
       onDeleteChat={handleDeleteChat}
       onSettingsClick={() => console.log("Settings")}
       onProfileClick={() => console.log("Profile")}
+      onLogout={handleLogout}
     />
   )
 }

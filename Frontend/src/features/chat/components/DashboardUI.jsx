@@ -23,6 +23,8 @@ import {
   Copy,
   Check,
   AlertTriangle,
+  LogOut,
+  Palette,
 } from "lucide-react";
 
 // ─── Auto-resize textarea hook ────────────────────────────────────────────────
@@ -393,14 +395,15 @@ function ChatHistoryItem({ icon: Icon, title, isActive, onDelete }) {
 }
 
 // ─── Action button pill ────────────────────────────────────────────────────────
-function ActionButton({ icon, label }) {
+function ActionButton({ icon, label, onClick }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-neutral-900 hover:bg-neutral-800 rounded-full border border-neutral-800 text-neutral-400 hover:text-white transition-all duration-200 hover:border-neutral-700 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shrink-0"
     >
       {icon}
-      <span className="text-xs font-medium">{label}</span>
+      <span className="text-xs font-medium max-w-[200px] truncate">{label}</span>
     </button>
   );
 }
@@ -416,8 +419,11 @@ function SidebarContent({
   onDeleteChat,
   onSettingsClick,
   onProfileClick,
+  onLogout,
   onCloseMobile,
 }) {
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+
   return (
     <>
       {/* Logo + close button on mobile */}
@@ -503,12 +509,38 @@ function SidebarContent({
       <div className="border-t border-neutral-800/60 p-3 space-y-1">
         <button
           type="button"
-          onClick={onSettingsClick}
+          onClick={() => {
+            onSettingsClick?.();
+            setShowSettingsMenu(!showSettingsMenu);
+          }}
           className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200 transition-all duration-200"
         >
           <Settings className="w-4 h-4" />
           <span className="text-sm">Settings</span>
         </button>
+
+        {showSettingsMenu && (
+          <div className="flex flex-col gap-1 px-2 py-1.5 bg-neutral-900/40 rounded-lg animate-fade-in border border-neutral-800/50 mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                document.documentElement.classList.toggle('light-theme');
+              }}
+              className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-all duration-200"
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span className="text-sm text-left">Theme Option</span>
+            </button>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="text-sm text-left">Logout</span>
+            </button>
+          </div>
+        )}
 
         <div
           onClick={onProfileClick}
@@ -555,7 +587,7 @@ function ChatInputBar({ value, setValue, textareaRef, adjustHeight, onKeyDown, o
             "w-full resize-none bg-transparent border-none text-white text-sm",
             "focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
             "placeholder:text-neutral-500 placeholder:text-sm",
-            compact ? "px-3 py-2 min-h-[36px]" : "px-4 py-3 min-h-[60px]"
+            compact ? "px-6 py-2 min-h-[36px]" : "px-8 py-3 min-h-[60px]"
           )}
         />
       </div>
@@ -622,6 +654,7 @@ export function DashboardUI({
   onDeleteChat,
   onSettingsClick,
   onProfileClick,
+  onLogout,
 }) {
   const [value, setValue] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -725,6 +758,7 @@ export function DashboardUI({
               onDeleteChat={handleDeleteRequest}
               onSettingsClick={onSettingsClick}
               onProfileClick={onProfileClick}
+              onLogout={onLogout}
               onCloseMobile={() => setMobileMenuOpen(false)}
             />
           </aside>
@@ -743,6 +777,7 @@ export function DashboardUI({
           onDeleteChat={handleDeleteRequest}
           onSettingsClick={onSettingsClick}
           onProfileClick={onProfileClick}
+          onLogout={onLogout}
         />
       </aside>
 
@@ -799,11 +834,27 @@ export function DashboardUI({
               {/* Quick action pills */}
               <div className="hidden sm:block">
                 <div className="flex items-center gap-3 justify-center flex-wrap">
-                  <ActionButton icon={<ImageIcon className="w-4 h-4" />} label="Clone a Screenshot" />
-                  <ActionButton icon={<Figma className="w-4 h-4" />} label="Import from Figma" />
-                  <ActionButton icon={<FileUp className="w-4 h-4" />} label="Upload a Project" />
-                  <ActionButton icon={<MonitorIcon className="w-4 h-4" />} label="Landing Page" />
-                  <ActionButton icon={<CircleUserRound className="w-4 h-4" />} label="Sign Up Form" />
+                  {chatHistory.length > 0 ? (
+                    chatHistory.slice(0, 5).map((chat) => {
+                      const Icon = getIconForChat(chat);
+                      return (
+                        <ActionButton 
+                          key={chat._id}
+                          icon={<Icon className="w-4 h-4" />} 
+                          label={chat.title || "Untitled Chat"}
+                          onClick={() => onSelectChat?.(chat._id)}
+                        />
+                      );
+                    })
+                  ) : (
+                    <>
+                      <ActionButton icon={<ImageIcon className="w-4 h-4" />} label="Clone a Screenshot" />
+                      <ActionButton icon={<Figma className="w-4 h-4" />} label="Import from Figma" />
+                      <ActionButton icon={<FileUp className="w-4 h-4" />} label="Upload a Project" />
+                      <ActionButton icon={<MonitorIcon className="w-4 h-4" />} label="Landing Page" />
+                      <ActionButton icon={<CircleUserRound className="w-4 h-4" />} label="Sign Up Form" />
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -847,23 +898,6 @@ export function DashboardUI({
           </div>
         )}
 
-        {/* Status bar (only on landing) */}
-        {!isChatView && (
-          <div className="border-t border-neutral-800/60 px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-center gap-3 sm:gap-6 relative z-10">
-            <StatusIndicator label="SYSTEM READY" color="green" />
-            <StatusDivider />
-            <span className="text-[10px] sm:text-[11px] text-neutral-500 font-mono tracking-wider">
-              V2.4.0 ENGINE
-            </span>
-            <StatusDivider />
-            <span className="text-[10px] sm:text-[11px] text-neutral-500 font-mono tracking-wider hidden sm:inline">
-              LATENCY 12MS
-            </span>
-            <span className="text-[10px] text-neutral-500 font-mono tracking-wider sm:hidden">
-              12MS
-            </span>
-          </div>
-        )}
       </main>
     </div>
   );

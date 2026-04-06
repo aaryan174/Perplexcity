@@ -187,3 +187,20 @@ export async function getMeController(req, res) {
         user
     })
 }
+
+// logout controller
+export async function logoutController(req, res) {
+    try {
+        res.clearCookie("token");
+        res.status(200).json({
+            message: "user logged out successfully",
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+}

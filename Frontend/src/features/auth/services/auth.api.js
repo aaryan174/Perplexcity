@@ -26,4 +26,9 @@ export async function register({username, email, password}) {
 export async function getMe() {
     const res = await api.get("/api/auth/get-me")
     return res.data
-}   
+}
+
+export async function logout() {
+    const res = await api.post("/api/auth/logout")
+    return res.data
+}
