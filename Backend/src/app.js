@@ -32,8 +32,8 @@ app.use("/api/chats", chatRouter);
 const publicPath = path.join(__dirname, "public");
 app.use(express.static(publicPath));
 
-// ✅ FIXED fallback (Express v5 safe)
-app.use((req, res) => {
+// SPA fallback — only for non-API GET requests
+app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
