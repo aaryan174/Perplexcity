@@ -6,28 +6,35 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// init app
+const app = express();
 
 // middleware
-const app = express();
 app.use(express.json());
 app.use(cookieParser());
+
+// ✅ FIXED CORS (important for Render)
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-}))
+  origin: true, // allows both local + deployed frontend
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+}));
 
-
+// API routes
 app.use("/api/auth", authRouter);
-app.use("/api/chats", chatRouter );
+app.use("/api/chats", chatRouter);
 
-app.use(express.static(path.join(__dirname, "public")));
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// static frontend (SPA)
+const publicPath = path.join(__dirname, "public");
+app.use(express.static(publicPath));
+
+// ✅ FIXED fallback (Express v5 safe)
+app.use((req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"));
 });
 
-
-export default  app;
+export default app;
