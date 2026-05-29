@@ -26,7 +26,6 @@
     "jsonwebtoken": "^9.0.3",
     "langchain": "^1.2.37",
     "mongoose": "^9.3.1",
-    "nodemailer": "^8.0.3",
     "socket.io": "^4.8.3",
     "zod": "^4.3.6"
   }
