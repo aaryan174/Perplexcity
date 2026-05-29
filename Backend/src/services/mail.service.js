@@ -1,35 +1,45 @@
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        type: 'OAuth2',
-        user: process.env.GOOGLE_USER,
-        clientId: process.env.GOOGLE_CLIENT_ID_URL,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.GOOGLE_CLIENT_REFRESH_TOKEN
-    }
-})
+  service: "gmail",
+  auth: {
+    type: "OAuth2",
+    user: process.env.GOOGLE_USER,
+    clientId: process.env.GOOGLE_CLIENT_ID_URL,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_CLIENT_REFRESH_TOKEN,
+  },
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
+});
 
-transporter.verify()
-    .then(() => { console.log("Email transporter is ready to send emails"); })
-    .catch((err) => { console.error("Email transporter verification failed:", err); });
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text = "",
+}) {
+  try {
+    const mailOptions = {
+      from: process.env.GOOGLE_USER,
+      to,
+      subject,
+      html,
+      text,
+    };
 
-export async function sendEmail({ to, subject, html, text = "" }) {
-    try {
-        const mailOptions = {
-            from: process.env.GOOGLE_USER,
-            to,
-            subject,
-            html,
-            text
-        };
+    const info = await transporter.sendMail(mailOptions);
 
-        const details = await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully:", details.messageId);
-        return details;
-    } catch (error) {
-        console.error("Error sending email:", error);
-        throw new Error("Failed to send email. Please check your credentials or network.");
-    }
+    console.log("Email sent successfully:", info.messageId);
+
+    return {
+      success: true,
+      messageId: info.messageId,
+    };
+  } catch (error) {
+    console.error("Email sending failed:", error);
+
+    throw error;
+  }
 }
